@@ -9,9 +9,11 @@ import (
 // StrLen is a generic version of C strlen.
 //
 // It accepts a pointer to the first array element and advances it until it reaches a zero value.
-// Position of this zero terminator is returned, which equals to a length of the string.
+// Position of this zero terminator is returned, which equals to a length of the array.
 //
 // Additionally, function checks for a nil pointer and returns 0 length in this case.
+//
+// The behavior is undefined if p is not a pointer to a null-terminated array.
 func StrLen[T comparable](p *T) int {
 	if p == nil {
 		return 0
@@ -163,4 +165,16 @@ func StrCmpS[T constraints.Ordered](p1, p2 []T) int {
 		p1 = p1[1:]
 		p2 = p2[1:]
 	}
+}
+
+// StrCmpN is the same as StrCmp, but accepts length for underlying arrays. It still looks for a zero value as a terminator.
+func StrCmpN[T constraints.Ordered](p1, p2 *T, max int) int {
+	if p1 == nil && p2 == nil {
+		return 0
+	} else if p1 == nil {
+		return -1
+	} else if p2 == nil {
+		return +1
+	}
+	return StrCmpS(unsafe.Slice(p1, max), unsafe.Slice(p2, max))
 }

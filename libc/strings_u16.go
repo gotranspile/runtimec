@@ -1,6 +1,7 @@
 package libc
 
 import (
+	"strings"
 	"unicode/utf16"
 	"unsafe"
 )
@@ -59,4 +60,60 @@ func StrCopyFull16(p []uint16, s string) {
 	if n < len(p) {
 		p[n] = 0
 	}
+}
+
+// StrCopy16 copies UTF-16 string into p.
+//
+// Deprecated: Unsafe, use StrCopyZero16 or StrCopyFull16.
+func StrCopy16(p *uint16, s string) {
+	s16 := utf16.Encode([]rune(s))
+	dst := StrSliceN(p, len(s16)+1)
+	n := copy(dst, s16)
+	dst[n] = 0
+}
+
+// StrCaseCmp16 is similar to C strcasecmp for UTF-16.
+//
+// Deprecated: Unsafe, use StrCaseCmpS16 or StrCaseCmpN16.
+func StrCaseCmp16(p1, p2 *uint16) int {
+	if p1 == nil && p2 == nil {
+		return 0
+	} else if p1 == nil {
+		return -1
+	} else if p2 == nil {
+		return +1
+	}
+	s1 := StrSlice(p1)
+	s2 := StrSlice(p2)
+	return StrCaseCmpS16(s1, s2)
+}
+
+// StrCaseCmpS16 is safe version of StrCaseCmp16.
+func StrCaseCmpS16(p1, p2 []uint16) int {
+	if cap(p1) == 0 && cap(p2) == 0 {
+		return 0
+	} else if cap(p1) == 0 {
+		return -1
+	} else if cap(p2) == 0 {
+		return +1
+	}
+	s1 := GoStringS16(p1)
+	s2 := GoStringS16(p2)
+	s1 = strings.ToLower(s1)
+	s2 = strings.ToLower(s2)
+	return strings.Compare(s1, s2)
+}
+
+// StrCaseCmpN16 is safe version of StrCaseCmp16 which requires length.
+func StrCaseCmpN16(p1, p2 *uint16, max int) int {
+	if p1 == nil && p2 == nil {
+		return 0
+	} else if p1 == nil {
+		return -1
+	} else if p2 == nil {
+		return +1
+	}
+	s1 := unsafe.Slice(p1, max)
+	s2 := unsafe.Slice(p2, max)
+	return StrCaseCmpS16(s1, s2)
 }

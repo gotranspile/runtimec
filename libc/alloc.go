@@ -76,8 +76,8 @@ func Realloc[T any](p *T, sz int) *T {
 }
 
 // ReallocP is similar to C realloc.
-func ReallocP[N constraints.Integer](p unsafe.Pointer, cnt, sz N) unsafe.Pointer {
-	return alloc.Realloc(p, uintptr(cnt), uintptr(sz))
+func ReallocP(p unsafe.Pointer, cnt, sz uintptr) unsafe.Pointer {
+	return alloc.Realloc(p, cnt, sz)
 }
 
 // Free allocated memory.

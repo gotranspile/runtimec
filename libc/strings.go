@@ -58,7 +58,7 @@ func StrSlice[T comparable](p *T) []T {
 		return nil
 	}
 	n := StrLen(p)
-	return unsafe.Slice(p, n)
+	return unsafe.Slice(p, n+1)[:n]
 }
 
 // StrSliceN uses StrLen to determine the length of a zero-terminated string, and returns it as a slice.

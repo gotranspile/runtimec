@@ -20,14 +20,14 @@ func RunTestAlloc(t *testing.T, a libc.Allocator) {
 			t.Fatal()
 		}
 	})
-	t.Run("clone", func(t *testing.T) {
+	t.Run("clone slice", func(t *testing.T) {
 		const sz = 10
 		s := libc.Make[byte](sz)
 		defer libc.FreeS(s)
 		for i := range s {
 			s[i] = byte(i)
 		}
-		s2 := libc.Clone(s)
+		s2 := libc.CloneS(s)
 		defer libc.FreeS(s2)
 		if !bytes.Equal(s, s2) {
 			t.Fatal()

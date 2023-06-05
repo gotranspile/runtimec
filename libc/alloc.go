@@ -1,10 +1,7 @@
 package libc
 
 import (
-	"bytes"
 	"unsafe"
-
-	"golang.org/x/exp/constraints"
 )
 
 var alloc Allocator = new(GoAllocator)
@@ -41,8 +38,15 @@ func Make[T any](sz int) []T {
 	return unsafe.Slice((*T)(p), sz)
 }
 
-// Clone the slice, using memory provided by the allocator. Caller must free the result with FreeS.
-func Clone[T any](p []T) []T {
+// Clone the object, using memory provided by the allocator. Caller must free the result with Free.
+func Clone[T any](p *T) *T {
+	p2 := New[T]()
+	*p2 = *p
+	return p2
+}
+
+// CloneS the slice, using memory provided by the allocator. Caller must free the result with FreeS.
+func CloneS[T any](p []T) []T {
 	p2 := Make[T](len(p))
 	copy(p2, p)
 	return p2
@@ -97,65 +101,4 @@ func FreeS[T any](p []T) {
 	}
 	p = p[:1]
 	FreeP(unsafe.Pointer(&p[0]))
-}
-
-// MemSet is a generic implementation of C memset.
-func MemSet[T any, N constraints.Integer](p *T, v T, sz N) {
-	MemSetS(unsafe.Slice(p, sz), v)
-}
-
-// MemSetS is a generic implementation of C memset that accepts a slice.
-func MemSetS[T any](dst []T, v T) {
-	for i := range dst {
-		dst[i] = v
-	}
-}
-
-// MemCopy is a generic implementation of C memcpy.
-func MemCopy[T any](dst, src *T, sz uintptr) {
-	copy(unsafe.Slice(dst, sz), unsafe.Slice(src, sz))
-}
-
-// MemCopyP is similar to MemCopy, but accepts unsafe.Pointer.
-func MemCopyP(dst, src unsafe.Pointer, sz uintptr) {
-	copy(unsafe.Slice((*byte)(dst), sz), unsafe.Slice((*byte)(src), sz))
-}
-
-// MemCmp is a generic version of C memcmp.
-func MemCmp[T comparable](p1, p2 *T, sz uintptr) int {
-	if p1 == nil && p2 == nil {
-		return 0
-	} else if p1 == nil {
-		return -1
-	} else if p2 == nil {
-		return +1
-	}
-	var zero T
-	return MemCmpP(unsafe.Pointer(p1), unsafe.Pointer(p2), sz*unsafe.Sizeof(zero))
-}
-
-// MemCmpP is similar to MemCmp, but accepts unsafe.Pointer.
-func MemCmpP(p1, p2 unsafe.Pointer, sz uintptr) int {
-	if p1 == nil && p2 == nil {
-		return 0
-	} else if p1 == nil {
-		return -1
-	} else if p2 == nil {
-		return +1
-	}
-	s1, s2 := unsafe.Slice((*byte)(p1), sz), unsafe.Slice((*byte)(p2), sz)
-	return bytes.Compare(s1, s2)
-}
-
-// MemCmpS is similar to MemCmp, but accepts slices.
-func MemCmpS[T comparable](p1, p2 []T) int {
-	if len(p1) < len(p2) {
-		return -1
-	} else if len(p1) > len(p2) {
-		return +1
-	}
-	if len(p1) == 0 {
-		return 0
-	}
-	return MemCmp(&p1[0], &p2[0], uintptr(len(p1)))
 }

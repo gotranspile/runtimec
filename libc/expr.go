@@ -1,9 +1,27 @@
 package libc
 
-import "golang.org/x/exp/constraints"
+import (
+	"unsafe"
+
+	"golang.org/x/exp/constraints"
+)
 
 type number = interface {
 	constraints.Integer | constraints.Float
+}
+
+// BoolToInt is a helper that return 1 for true and 0 for false boolean values.
+func BoolToInt(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+// PtrAdd is a generic version of unsafe.Add. It can be used in places where C pointer arithmetic was used.
+func PtrAdd[T any](p *T, off int) *T {
+	var zero T
+	return (*T)(unsafe.Add(unsafe.Pointer(p), off*int(unsafe.Sizeof(zero))))
 }
 
 // If is similar to a ternary operator in C. It ALWAYS evaluates side effects.

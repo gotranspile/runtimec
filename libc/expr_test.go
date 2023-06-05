@@ -2,6 +2,12 @@ package libc
 
 import "testing"
 
+func TestBoolToInt(t *testing.T) {
+	if BoolToInt(false) != 0 || BoolToInt(true) != 1 {
+		t.Fatal()
+	}
+}
+
 func TestIf(t *testing.T) {
 	x := If(true, 1, 2)
 	if x != 1 {
@@ -24,10 +30,24 @@ func TestIf(t *testing.T) {
 
 func TestIfFunc(t *testing.T) {
 	y := 0
+
 	x := IfFunc(true, func() int {
 		return 1
 	}, func() int {
-		return PostInc(&y)
+		return PostDec(&y)
+	})
+	if x != 1 {
+		t.FailNow()
+	}
+	// Side effect not applied.
+	if y != 0 {
+		t.FailNow()
+	}
+
+	x = IfFunc(false, func() int {
+		return PostDec(&y)
+	}, func() int {
+		return 1
 	})
 	if x != 1 {
 		t.FailNow()
